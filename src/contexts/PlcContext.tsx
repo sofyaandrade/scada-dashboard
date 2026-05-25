@@ -12,6 +12,7 @@ import type ITypeOperation from "@/interface/ITag/IAreaModbus";
 import type ITag from "@/interface/ITag/ITag";
 import type ISwap from "@/interface/ITag/ISwap";
 import type ITypeTag from "@/interface/ITag/ITypeTag";
+import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/store/hooks";
 import { addClp, deleteClp, getClps, readStatusClps, updateClp } from "@/services/clpService";
 import { addTags, deleteTag, readTagsRealTime, updateTags } from "@/services/tagsService";
@@ -262,6 +263,7 @@ function mergeTagInput(
 
 export function PlcProvider({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
+  const { accessToken, ready } = useAuth();
   const [plcs, setPlcs] = useState<PLC[]>([]);
   const [typeClps, setTypeClps] = useState<ITypeClp[]>([]);
   const [typeTags, setTypeTags] = useState<ITypeTag[]>([]);
@@ -346,14 +348,27 @@ export function PlcProvider({ children }: { children: ReactNode }) {
   }, [dispatch, refresh]);
 
   useEffect(() => {
+    if (!ready || !accessToken) {
+      setTypeClps([]);
+      setTypeTags([]);
+      setSwaps([]);
+      setTypeOperations([]);
+      return;
+    }
+
     void loadOptions();
-  }, [loadOptions]);
+  }, [accessToken, loadOptions, ready]);
 
   useEffect(() => {
+    if (!ready || !accessToken) {
+      setPlcs([]);
+      return;
+    }
+
     void refresh();
     const id = window.setInterval(() => void refresh(), 1000);
     return () => window.clearInterval(id);
-  }, [refresh]);
+  }, [accessToken, ready, refresh]);
 
   const value = useMemo<PlcContextValue>(
     () => ({

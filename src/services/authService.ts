@@ -48,8 +48,8 @@ function userFromToken(accessToken: string, email: string): AuthUser {
 }
 
 function normalizeLoginResponse(data: LoginResponse): Pick<AuthSession, "accessToken" | "refreshToken"> {
-  const accessToken = data.AccessToken ?? data.accessToken;
-  const refreshToken = data.RefreshToken ?? data.refreshToken;
+  const accessToken = data.access_token ?? data.AccessToken ?? data.accessToken;
+  const refreshToken = data.refresh_token ?? data.RefreshToken ?? data.refreshToken;
 
   if (!accessToken || !refreshToken) {
     throw new Error("Resposta de login invalida: tokens nao encontrados.");
@@ -92,7 +92,10 @@ export async function loginWithBackend(email: string, password: string): Promise
       ...tokens,
       user: userFromToken(tokens.accessToken, login),
     };
-  } catch {
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error("Nao foi possivel conectar ao backend. Confira se a API esta rodando na porta 1710.");
+    }
     throw new Error("Nao foi possivel autenticar. Confira usuario e senha.");
   }
 }

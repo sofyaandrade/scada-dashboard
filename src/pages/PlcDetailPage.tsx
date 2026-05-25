@@ -38,6 +38,10 @@ const STATUS_META: Record<ConnectionStatus, { label: string; cls: string; Icon: 
   connecting: { label: "Conectando", cls: "text-status-connecting", Icon: Loader2 },
 };
 
+function optionLabel(item: { description?: string; Description?: string }): string {
+  return item.description ?? item.Description ?? "";
+}
+
 interface PlcDetailPageProps {
   plcId: string;
 }
@@ -187,12 +191,13 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<NewPlcInput>(() => formFromPlc(plc));
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
       setForm(formFromPlc(plc));
       setError("");
     }
-  }, [open, plc]);
+    setOpen(nextOpen);
+  };
 
   const submit = async () => {
     if (!form.name.trim() || !form.ip.trim()) {
@@ -224,7 +229,7 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
           <Pencil className="h-4 w-4" />
@@ -281,7 +286,7 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
                 <SelectContent>
                   {typeClps.map((typeClp) => (
                     <SelectItem key={typeClp.ID} value={String(typeClp.ID)}>
-                      {typeClp.description}
+                      {optionLabel(typeClp)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -441,12 +446,13 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<TagFormState>(() => formFromTag(tag));
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
       setForm(withDefaultTagOptions(formFromTag(tag), typeTags, swaps, typeOperations));
       setError("");
     }
-  }, [open, swaps, tag, typeOperations, typeTags]);
+    setOpen(nextOpen);
+  };
 
   const submit = async () => {
     if (!form.name.trim()) {
@@ -482,7 +488,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <button aria-label="Editar">
           <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
@@ -521,7 +527,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
                 <SelectContent>
                   {typeTags.map((typeTag) => (
                     <SelectItem key={typeTag.ID} value={String(typeTag.ID)}>
-                      {typeTag.description}
+                      {optionLabel(typeTag)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -540,7 +546,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
                 <SelectContent>
                   {swaps.map((swap) => (
                     <SelectItem key={swap.ID} value={String(swap.ID)}>
-                      {swap.description}
+                      {optionLabel(swap)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -556,8 +562,8 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {typeOperations.map((operation) => (
-                    <SelectItem key={operation.ID} value={operation.description}>
-                      {operation.description}
+                    <SelectItem key={operation.ID} value={String(operation.ID)}>
+                      {optionLabel(operation)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -662,7 +668,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
                 <SelectContent>
                   {typeTags.map((typeTag) => (
                     <SelectItem key={typeTag.ID} value={String(typeTag.ID)}>
-                      {typeTag.description}
+                      {optionLabel(typeTag)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -681,7 +687,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
                 <SelectContent>
                   {swaps.map((swap) => (
                     <SelectItem key={swap.ID} value={String(swap.ID)}>
-                      {swap.description}
+                      {optionLabel(swap)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -698,7 +704,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
                 <SelectContent>
                   {typeOperations.map((operation) => (
                     <SelectItem key={operation.ID} value={String(operation.ID)}>
-                      {operation.description}
+                      {optionLabel(operation)}
                     </SelectItem>
                   ))}
                 </SelectContent>
