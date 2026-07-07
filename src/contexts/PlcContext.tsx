@@ -46,7 +46,13 @@ export interface PlcContextValue {
   refresh: () => Promise<void>;
 }
 
-type RealTimePayload = Record<string, Record<string, TagValue>>;
+type RawTagState = {
+  value?: unknown;
+  quality?: unknown;
+  last_successful_read?: unknown;
+};
+type RawTagValue = TagValue | RawTagState;
+type RealTimePayload = Record<string, Record<string, RawTagValue>>;
 type StatusPayload = Record<string, boolean>;
 
 export const PlcContext = createContext<PlcContextValue | null>(null);
@@ -79,15 +85,40 @@ function formatTagAddress(tag: ITag): string {
   return area ? `${area} ${offset}` : String(offset);
 }
 
-function valueForTag(tag: ITag, realtimeByClp?: Record<string, TagValue>): TagValue {
-  const value = realtimeByClp?.[String(tag.ID)];
-  if (value !== undefined && value !== null) return value;
-
-  return defaultValueFor(tag.type?.description);
+function isTagValue(value: unknown): value is TagValue {
+  return ["number", "boolean", "string"].includes(typeof value);
 }
 
-function mapTag(tag: ITag, realtimeByClp?: Record<string, TagValue>, now = Date.now()): Tag {
+function readTagValue(rawValue: RawTagValue | undefined, fallback: TagValue): TagValue {
+  if (isTagValue(rawValue)) return rawValue;
+
+  if (rawValue && typeof rawValue === "object" && !Array.isArray(rawValue)) {
+    const value = rawValue.value;
+    if (isTagValue(value)) return value;
+  }
+
+  return fallback;
+}
+
+function readTagTimestamp(rawValue: RawTagValue | undefined, fallback: number): number {
+  if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) return fallback;
+
+  if (typeof rawValue.last_successful_read === "string") {
+    const timestamp = Date.parse(rawValue.last_successful_read);
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+
+  return fallback;
+}
+
+function valueForTag(tag: ITag, realtimeByClp?: Record<string, RawTagValue>): TagValue {
+  const fallback = defaultValueFor(tag.type?.description);
+  return readTagValue(realtimeByClp?.[String(tag.ID)], fallback);
+}
+
+function mapTag(tag: ITag, realtimeByClp?: Record<string, RawTagValue>, now = Date.now()): Tag {
   const type = tagTypeFromDescription(tag.type?.description);
+  const realtimeValue = realtimeByClp?.[String(tag.ID)];
 
   return {
     id: String(tag.ID),
@@ -103,7 +134,7 @@ function mapTag(tag: ITag, realtimeByClp?: Record<string, TagValue>, now = Date.
     swap: tag.swap,
     operationType: tag.operation_type,
     value: valueForTag(tag, realtimeByClp),
-    lastUpdate: now,
+    lastUpdate: readTagTimestamp(realtimeValue, now),
     backendTag: tag,
   };
 }
