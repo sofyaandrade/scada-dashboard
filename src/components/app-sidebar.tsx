@@ -220,12 +220,12 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {plcs.map((p) => {
-                const url = `/plcs/${p.id}`;
+                const url = `/clps/${p.id}`;
                 const active = currentPath === url;
                 return (
                   <SidebarMenuItem key={p.id}>
                     <SidebarMenuButton asChild isActive={active} className="h-auto py-2">
-                      <Link to="/plcs/$plcId" params={{ plcId: p.id }}>
+                      <Link to="/clps/$plcId" params={{ plcId: p.id }}>
                         <Cpu className="h-4 w-4 shrink-0" />
                         <div className="flex min-w-0 flex-1 items-center justify-between gap-2 group-data-[collapsible=icon]:hidden">
                           <div className="flex min-w-0 flex-col">

@@ -55,7 +55,7 @@ export function DashboardPage() {
             return (
               <Link
                 key={p.id}
-                to="/plcs/$plcId"
+                to="/clps/$plcId"
                 params={{ plcId: p.id }}
                 className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-card transition hover:border-primary/50 hover:shadow-glow"
               >
