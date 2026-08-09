@@ -1,5 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, Cpu, Loader2, LogOut, Plus, User } from "lucide-react";
+import {
+  Activity,
+  Cpu,
+  Loader2,
+  LogOut,
+  Plus,
+  Settings,
+  SlidersHorizontal,
+  User,
+  UserCog,
+  UserPlus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Sidebar,
@@ -33,6 +44,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { ConnectionStatus } from "@/types/plc";
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
@@ -242,6 +261,28 @@ export function AppSidebar() {
             <span className="truncate text-sm font-medium">{user?.name ?? "Convidado"}</span>
             <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 group-data-[collapsible=icon]:hidden"
+                aria-label="Configuracoes"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56">
+              <DropdownMenuLabel className="font-mono text-xs">Configuracoes</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/usuarios/cadastro">
+                  <UserPlus className="h-4 w-4" />
+                  Cadastrar usuario
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             size="icon"

@@ -13,7 +13,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppUsuariosConfiguracaoRouteImport } from './routes/_app/usuarios.configuracao'
+import { Route as AppUsuariosCadastroRouteImport } from './routes/_app/usuarios.cadastro'
 import { Route as AppPlcsPlcIdRouteImport } from './routes/_app/plcs.$plcId'
+import { Route as AppClpsConfiguracaoRouteImport } from './routes/_app/clps.configuracao'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -34,9 +37,24 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppUsuariosConfiguracaoRoute = AppUsuariosConfiguracaoRouteImport.update({
+  id: '/usuarios/configuracao',
+  path: '/usuarios/configuracao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsuariosCadastroRoute = AppUsuariosCadastroRouteImport.update({
+  id: '/usuarios/cadastro',
+  path: '/usuarios/cadastro',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPlcsPlcIdRoute = AppPlcsPlcIdRouteImport.update({
   id: '/plcs/$plcId',
   path: '/plcs/$plcId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClpsConfiguracaoRoute = AppClpsConfiguracaoRouteImport.update({
+  id: '/clps/configuracao',
+  path: '/clps/configuracao',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -44,13 +62,19 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AppDashboardRoute
+  '/clps/configuracao': typeof AppClpsConfiguracaoRoute
   '/plcs/$plcId': typeof AppPlcsPlcIdRoute
+  '/usuarios/cadastro': typeof AppUsuariosCadastroRoute
+  '/usuarios/configuracao': typeof AppUsuariosConfiguracaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AppDashboardRoute
+  '/clps/configuracao': typeof AppClpsConfiguracaoRoute
   '/plcs/$plcId': typeof AppPlcsPlcIdRoute
+  '/usuarios/cadastro': typeof AppUsuariosCadastroRoute
+  '/usuarios/configuracao': typeof AppUsuariosConfiguracaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,20 +82,40 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/clps/configuracao': typeof AppClpsConfiguracaoRoute
   '/_app/plcs/$plcId': typeof AppPlcsPlcIdRoute
+  '/_app/usuarios/cadastro': typeof AppUsuariosCadastroRoute
+  '/_app/usuarios/configuracao': typeof AppUsuariosConfiguracaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/plcs/$plcId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/clps/configuracao'
+    | '/plcs/$plcId'
+    | '/usuarios/cadastro'
+    | '/usuarios/configuracao'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/plcs/$plcId'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/clps/configuracao'
+    | '/plcs/$plcId'
+    | '/usuarios/cadastro'
+    | '/usuarios/configuracao'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
     | '/_app/dashboard'
+    | '/_app/clps/configuracao'
     | '/_app/plcs/$plcId'
+    | '/_app/usuarios/cadastro'
+    | '/_app/usuarios/configuracao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -110,6 +154,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/usuarios/configuracao': {
+      id: '/_app/usuarios/configuracao'
+      path: '/usuarios/configuracao'
+      fullPath: '/usuarios/configuracao'
+      preLoaderRoute: typeof AppUsuariosConfiguracaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/usuarios/cadastro': {
+      id: '/_app/usuarios/cadastro'
+      path: '/usuarios/cadastro'
+      fullPath: '/usuarios/cadastro'
+      preLoaderRoute: typeof AppUsuariosCadastroRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/plcs/$plcId': {
       id: '/_app/plcs/$plcId'
       path: '/plcs/$plcId'
@@ -117,17 +175,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlcsPlcIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/clps/configuracao': {
+      id: '/_app/clps/configuracao'
+      path: '/clps/configuracao'
+      fullPath: '/clps/configuracao'
+      preLoaderRoute: typeof AppClpsConfiguracaoRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
+  AppClpsConfiguracaoRoute: typeof AppClpsConfiguracaoRoute
   AppPlcsPlcIdRoute: typeof AppPlcsPlcIdRoute
+  AppUsuariosCadastroRoute: typeof AppUsuariosCadastroRoute
+  AppUsuariosConfiguracaoRoute: typeof AppUsuariosConfiguracaoRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
+  AppClpsConfiguracaoRoute: AppClpsConfiguracaoRoute,
   AppPlcsPlcIdRoute: AppPlcsPlcIdRoute,
+  AppUsuariosCadastroRoute: AppUsuariosCadastroRoute,
+  AppUsuariosConfiguracaoRoute: AppUsuariosConfiguracaoRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
