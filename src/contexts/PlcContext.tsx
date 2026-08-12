@@ -27,6 +27,7 @@ import type {
   PLC,
   Tag,
   TagDataType,
+  TagRealtimeReading,
   TagValue,
 } from "@/types/plc";
 
@@ -46,7 +47,8 @@ export interface PlcContextValue {
   refresh: () => Promise<void>;
 }
 
-type RealTimePayload = Record<string, Record<string, TagValue>>;
+type RealTimeEntry = TagValue | TagRealtimeReading;
+type RealTimePayload = Record<string, Record<string, RealTimeEntry>>;
 type StatusPayload = Record<string, boolean>;
 
 export const PlcContext = createContext<PlcContextValue | null>(null);
@@ -79,15 +81,16 @@ function formatTagAddress(tag: ITag): string {
   return area ? `${area} ${offset}` : String(offset);
 }
 
-function valueForTag(tag: ITag, realtimeByClp?: Record<string, TagValue>): TagValue {
-  const value = realtimeByClp?.[String(tag.ID)];
+function valueForTag(tag: ITag, realtimeByClp?: Record<string, RealTimeEntry>): TagValue {
+  const value = extractRealtimeValue(realtimeByClp?.[String(tag.ID)]);
   if (value !== undefined && value !== null) return value;
 
   return defaultValueFor(tag.type?.description);
 }
 
-function mapTag(tag: ITag, realtimeByClp?: Record<string, TagValue>, now = Date.now()): Tag {
+function mapTag(tag: ITag, realtimeByClp?: Record<string, RealTimeEntry>, now = Date.now()): Tag {
   const type = tagTypeFromDescription(tag.type?.description);
+  const realtimeValue = realtimeByClp?.[String(tag.ID)];
 
   return {
     id: String(tag.ID),
@@ -103,7 +106,7 @@ function mapTag(tag: ITag, realtimeByClp?: Record<string, TagValue>, now = Date.
     swap: tag.swap,
     operationType: tag.operation_type,
     value: valueForTag(tag, realtimeByClp),
-    lastUpdate: now,
+    lastUpdate: extractRealtimeTimestamp(realtimeValue) ?? now,
     backendTag: tag,
   };
 }
@@ -113,6 +116,7 @@ function mapClp(clp: IClp, realtime: RealTimePayload, statuses: StatusPayload, n
   const realtimeByClp = realtime[id];
   const hasRealtime = realtimeByClp !== undefined;
   const status = statuses[id] ?? hasRealtime;
+  const tags = normalizeTags(clp.tags);
 
   return {
     id,
@@ -125,7 +129,7 @@ function mapClp(clp: IClp, realtime: RealTimePayload, statuses: StatusPayload, n
     typeClp: clp.type_clp,
     status: status ? "online" : "offline",
     description: clp.description,
-    tags: (clp.tags ?? []).map((tag) => mapTag(tag, realtimeByClp, now)),
+    tags: tags.map((tag) => mapTag(tag, realtimeByClp, now)),
     backendClp: clp,
   };
 }
@@ -135,12 +139,43 @@ function normalizeList<T>(payload: unknown): T[] {
 }
 
 function normalizeClps(payload: unknown): IClp[] {
-  return Array.isArray(payload) ? (payload as IClp[]) : [];
+  if (!Array.isArray(payload)) return [];
+  return payload.filter((item): item is IClp => Boolean(item) && typeof item === "object");
+}
+
+function normalizeTags(payload: unknown): ITag[] {
+  if (!Array.isArray(payload)) return [];
+  return payload.filter((item): item is ITag => Boolean(item) && typeof item === "object");
 }
 
 function normalizeRealTime(payload: unknown): RealTimePayload {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return {};
   return payload as RealTimePayload;
+}
+
+function isRealtimeReading(value: unknown): value is TagRealtimeReading {
+  return value !== null && typeof value === "object" && "value" in value;
+}
+
+function extractRealtimeValue(value: unknown): TagValue | undefined {
+  if (isRealtimeReading(value)) return value.value;
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+
+  return undefined;
+}
+
+function extractRealtimeTimestamp(value: unknown): number | undefined {
+  if (!isRealtimeReading(value) || value.last_successful_read == null) return undefined;
+
+  const parsed =
+    typeof value.last_successful_read === "number"
+      ? value.last_successful_read
+      : Date.parse(value.last_successful_read);
+
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function normalizeStatuses(payload: unknown): StatusPayload {

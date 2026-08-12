@@ -127,12 +127,14 @@ npm install
 npm run dev
 ```
 
-The development server starts at `http://localhost:2910`.
+The development server starts on port `2910` and can be accessed locally at `http://localhost:2910`.
 
-By default, the frontend connects to the backend at `http://localhost:1710`. To use another address, create a `.env` file:
+If you need to open the dashboard from another machine on the network, use the host machine IP, for example `http://192.168.0.10:2910`.
+
+By default, the frontend connects to the backend at `http://localhost:1710`. If the browser is running on another machine, `localhost` will not point to your backend. In that case, create a `.env` file with the backend IP:
 
 ```env
-VITE_BACKEND_URL=http://localhost:1710
+VITE_BACKEND_URL=http://192.168.0.10:1710
 ```
 
 ## Available Scripts

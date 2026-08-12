@@ -281,6 +281,12 @@ export function AppSidebar() {
                   Cadastrar usuario
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/usuarios/configuracao">
+                  <UserPlus className="h-4 w-4" />
+                  Configurar usuario
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button

@@ -13,6 +13,12 @@ export type PlcProtocol = string;
 
 export type TagValue = number | boolean | string;
 
+export interface TagRealtimeReading {
+  value: TagValue;
+  quality?: string;
+  last_successful_read?: string | number | null;
+}
+
 export interface Tag {
   id: string;
   name: string;
@@ -69,6 +75,6 @@ export interface BackendTagsResponse {
   plcs: Array<{
     id: string;
     status?: ConnectionStatus;
-    tags?: Array<{ id: string; value: TagValue }>;
+    tags?: Array<{ id: string; value: TagValue | TagRealtimeReading }>;
   }>;
 }
