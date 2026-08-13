@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, Cpu, Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Activity, Cpu, Loader2, Wifi, WifiOff } from "lucide-react";
 import { usePlc } from "@/hooks/usePlc";
 import type { ConnectionStatus } from "@/types/plc";
 
@@ -25,12 +25,12 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl p-6">
-      <header className="mb-8 flex items-end justify-between">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            visão geral
+            visao geral
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Equipamentos</h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">CLPs</h1>
         </div>
         <div className="flex items-center gap-6 font-mono text-xs">
           <Stat label="Online" value={counts.online ?? 0} color="text-status-online" />
@@ -40,57 +40,78 @@ export function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {plcs.map((p) => {
-          const Icon = ICONS[p.status];
-          const spinning = p.status === "connecting";
-          return (
-            <Link
-              key={p.id}
-              to="/plcs/$plcId"
-              params={{ plcId: p.id }}
-              className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-card transition hover:border-primary/50 hover:shadow-glow"
-            >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-primary opacity-0 transition group-hover:opacity-100" />
+      {plcs.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border p-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhum CLP encontrado no backend.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {plcs.map((p) => {
+            const Icon = ICONS[p.status];
+            const spinning = p.status === "connecting";
 
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                    <Cpu className="h-5 w-5 text-primary" />
+            return (
+              <Link
+                key={p.id}
+                to="/clps/$plcId"
+                params={{ plcId: p.id }}
+                className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-card transition hover:border-primary/50 hover:shadow-glow"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-primary opacity-0 transition group-hover:opacity-100" />
+
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+                      <Cpu className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-mono text-sm font-semibold">{p.name}</h3>
+                      <p className="font-mono text-[11px] text-muted-foreground">{p.protocol}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-mono text-sm font-semibold">{p.name}</h3>
-                    <p className="font-mono text-[11px] text-muted-foreground">{p.protocol}</p>
-                  </div>
+                  <span className={`status-dot status-${p.status}`} />
                 </div>
-                <span className={`status-dot status-${p.status}`} />
-              </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 font-mono text-xs">
-                <Field label="Endereço" value={`${p.ip}:${p.port}`} />
-                <Field label="Tags" value={String(p.tags.length)} />
-              </div>
+                <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 font-mono text-xs">
+                  <Field label="Endereco" value={`${p.ip}:${p.port}`} />
+                  <Field label="Tags" value={String(p.tags.length)} />
+                </div>
 
-              <div className="mt-4 flex items-center justify-between">
-                <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest ${
-                  p.status === "online" ? "text-status-online"
-                  : p.status === "connecting" ? "text-status-connecting"
-                  : "text-status-offline"
-                }`}>
-                  <Icon className={`h-3.5 w-3.5 ${spinning ? "animate-spin" : ""}`} />
-                  {LABELS[p.status]}
-                </span>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <span
+                    className={`inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest ${
+                      p.status === "online"
+                        ? "text-status-online"
+                        : p.status === "connecting"
+                          ? "text-status-connecting"
+                          : "text-status-offline"
+                    }`}
+                  >
+                    <Icon className={`h-3.5 w-3.5 ${spinning ? "animate-spin" : ""}`} />
+                    {LABELS[p.status]}
+                  </span>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function Stat({ label, value, color = "text-foreground" }: { label: string; value: number; color?: string }) {
+function Stat({
+  label,
+  value,
+  color = "text-foreground",
+}: {
+  label: string;
+  value: number;
+  color?: string;
+}) {
   return (
     <div className="text-right">
       <div className={`text-2xl font-semibold ${color}`}>{value}</div>

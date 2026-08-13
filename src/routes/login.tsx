@@ -4,8 +4,8 @@ import { LoginPage } from "@/pages/LoginPage";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Entrar · PLC.Bridge" },
-      { name: "description", content: "Acesso ao middleware de comunicação com CLPs em tempo real." },
+      { title: "Entrar | PLC.Bridge" },
+      { name: "description", content: "Acesso ao middleware de comunicacao com CLPs em tempo real." },
     ],
   }),
   component: LoginPage,

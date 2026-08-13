@@ -7,11 +7,13 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Provider as ReduxProvider } from "react-redux";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PlcProvider } from "@/contexts/PlcContext";
+import store from "@/store/store";
 
 function NotFoundComponent() {
   return (
@@ -105,13 +107,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <PlcProvider>
-            <Outlet />
-          </PlcProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <ReduxProvider store={store}>
+        <ThemeProvider>
+          <AuthProvider>
+            <PlcProvider>
+              <Outlet />
+            </PlcProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </ReduxProvider>
     </QueryClientProvider>
   );
 }

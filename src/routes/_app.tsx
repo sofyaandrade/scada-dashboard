@@ -10,14 +10,14 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { user, ready } = useAuth();
+  const { accessToken, user, ready } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (ready && !user) navigate({ to: "/login" });
-  }, [ready, user, navigate]);
+    if (ready && (!user || !accessToken)) navigate({ to: "/login" });
+  }, [accessToken, ready, user, navigate]);
 
-  if (!ready || !user) return null;
+  if (!ready || !user || !accessToken) return null;
 
   return (
     <SidebarProvider>

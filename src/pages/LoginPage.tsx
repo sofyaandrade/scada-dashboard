@@ -8,21 +8,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function LoginPage() {
-  const { user, ready, login } = useAuth();
+  const { accessToken, user, ready, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ready && user) navigate({ to: "/dashboard" });
-  }, [ready, user, navigate]);
+    if (ready && user && accessToken) navigate({ to: "/dashboard" });
+  }, [accessToken, ready, user, navigate]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
     try {
       await login(email, password);
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel autenticar.");
     } finally {
       setLoading(false);
     }
@@ -51,7 +57,7 @@ export function LoginPage() {
           <div>
             <h1 className="font-mono text-2xl font-semibold tracking-tight">PLC.Bridge</h1>
             <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              middleware · tempo real · industrial
+              middleware - tempo real - industrial
             </p>
           </div>
         </div>
@@ -70,17 +76,17 @@ export function LoginPage() {
           <div className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-widest">
-                E-mail
+                E-mail ou usuario
               </Label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="operador@planta.com"
+                  placeholder="adm"
                   className="pl-9 font-mono"
                 />
               </div>
@@ -98,19 +104,29 @@ export function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="********"
                   className="pl-9 font-mono"
                 />
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90">
+            {error && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90"
+            >
               {loading ? "Autenticando..." : "Acessar painel"}
             </Button>
           </div>
 
           <p className="mt-6 text-center text-[11px] text-muted-foreground">
-            Acesso restrito · sessão monitorada
+            Acesso restrito - sessao monitorada
           </p>
         </form>
       </div>
