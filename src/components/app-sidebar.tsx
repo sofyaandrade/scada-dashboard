@@ -119,7 +119,7 @@ function AddPlcDialog() {
       setForm(EMPTY_PLC);
     } catch (err) {
       console.error("[AddPlcDialog] create falhou:", err);
-      setError("Nao foi possivel cadastrar o CLP.");
+      setError("Não foi possível cadastrar o CLP.");
     } finally {
       setSaving(false);
     }
@@ -278,7 +278,7 @@ export function AppSidebar() {
               <DropdownMenuItem asChild>
                 <Link to="/usuarios/cadastro">
                   <UserPlus className="h-4 w-4" />
-                  Cadastrar usuario
+                  Cadastrar usuário
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

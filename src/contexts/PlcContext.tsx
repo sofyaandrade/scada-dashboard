@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type IClp from "@/interface/IClp/IClp";
 import type ITypeClp from "@/interface/IClp/ITypeClp";
 import type ITypeOperation from "@/interface/ITag/IAreaModbus";
@@ -46,10 +39,51 @@ export interface PlcContextValue {
   refresh: () => Promise<void>;
 }
 
-type RealTimePayload = Record<string, Record<string, TagValue>>;
+type RealTimeTagSnapshot =
+  | TagValue
+  | {
+      value?: unknown;
+      quality?: unknown;
+      last_successful_read?: unknown;
+      last_successful_read_unix_nano?: unknown;
+    };
+type RealTimePayload = Record<string, Record<string, RealTimeTagSnapshot>>;
 type StatusPayload = Record<string, boolean>;
+type BackendEntity = {
+  ID?: number | string;
+  id?: number | string;
+};
+type BackendDescription = {
+  description?: string;
+  Description?: string;
+};
 
 export const PlcContext = createContext<PlcContextValue | null>(null);
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function numberFrom(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const next = Number(value);
+    if (Number.isFinite(next)) return next;
+  }
+  return fallback;
+}
+
+function entityId(entity?: BackendEntity | null): number {
+  return numberFrom(entity?.ID ?? entity?.id);
+}
+
+function descriptionFrom(item?: BackendDescription | null): string {
+  return item?.description?.trim() || item?.Description?.trim() || "";
+}
+
+function isTagValue(value: unknown): value is TagValue {
+  return ["number", "boolean", "string"].includes(typeof value);
+}
 
 function defaultValueFor(type?: string): TagValue {
   const normalized = type?.toLowerCase() ?? "";
@@ -58,8 +92,31 @@ function defaultValueFor(type?: string): TagValue {
   return 0;
 }
 
+function valueFromRealtime(entry: RealTimeTagSnapshot | undefined, fallback: TagValue): TagValue {
+  const value = isObject(entry) && "value" in entry ? entry.value : entry;
+  return isTagValue(value) ? value : fallback;
+}
+
+function timestampFromRealtime(entry: RealTimeTagSnapshot | undefined, fallback: number): number {
+  if (!isObject(entry)) return fallback;
+
+  const readAt = entry.last_successful_read;
+  if (typeof readAt === "string" && readAt.trim() && !readAt.startsWith("0001-01-01")) {
+    const timestamp = Date.parse(readAt);
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+
+  const unixNano = entry.last_successful_read_unix_nano;
+  if (typeof unixNano === "string" && unixNano.trim()) {
+    const timestamp = Number(unixNano) / 1_000_000;
+    if (Number.isFinite(timestamp) && timestamp > 0) return timestamp;
+  }
+
+  return fallback;
+}
+
 function protocolFromClp(clp: IClp): string {
-  return clp.type_clp?.description?.trim() || `Tipo ${clp.type_clp_id}`;
+  return descriptionFrom(clp.type_clp) || `Tipo ${clp.type_clp_id}`;
 }
 
 function tagTypeFromDescription(description?: string): TagDataType {
@@ -73,69 +130,92 @@ function tagTypeFromDescription(description?: string): TagDataType {
 }
 
 function formatTagAddress(tag: ITag): string {
-  const area = tag.operation_type?.description?.trim();
-  const offset = Number.isFinite(tag.offset) ? tag.offset : 0;
+  const area = descriptionFrom(tag.operation_type);
+  const offset = numberFrom(tag.offset);
 
   return area ? `${area} ${offset}` : String(offset);
 }
 
-function valueForTag(tag: ITag, realtimeByClp?: Record<string, TagValue>): TagValue {
-  const value = realtimeByClp?.[String(tag.ID)];
+function valueForTag(
+  tag: ITag,
+  realtimeByClp?: Record<string, RealTimeTagSnapshot>,
+  fallback?: TagValue,
+): TagValue {
+  const tagId = entityId(tag);
+  const value = valueFromRealtime(realtimeByClp?.[String(tagId)], fallback ?? defaultValueFor());
   if (value !== undefined && value !== null) return value;
 
-  return defaultValueFor(tag.type?.description);
+  return defaultValueFor(descriptionFrom(tag.type));
 }
 
-function mapTag(tag: ITag, realtimeByClp?: Record<string, TagValue>, now = Date.now()): Tag {
-  const type = tagTypeFromDescription(tag.type?.description);
+function mapTag(
+  tag: ITag,
+  realtimeByClp?: Record<string, RealTimeTagSnapshot>,
+  now = Date.now(),
+): Tag {
+  const tagId = entityId(tag);
+  const typeId = numberFrom(tag.type_id, entityId(tag.type));
+  const swapId = numberFrom(tag.swap_id, entityId(tag.swap));
+  const operationId = numberFrom(tag.operation_id, entityId(tag.operation_type));
+  const typeDescription = descriptionFrom(tag.type);
+  const type = tagTypeFromDescription(typeDescription);
+  const fallbackValue = defaultValueFor(typeDescription);
+  const realtimeEntry = realtimeByClp?.[String(tagId)];
 
   return {
-    id: String(tag.ID),
-    name: tag.description || `Tag ${tag.ID}`,
+    id: String(tagId),
+    name: descriptionFrom(tag) || `Tag ${tagId}`,
     address: formatTagAddress(tag),
     type,
-    typeId: tag.type_id,
-    swapId: tag.swap_id,
-    operationId: tag.operation_id,
-    consumerId: tag.consumer_id,
-    offset: tag.offset,
+    typeId,
+    swapId,
+    operationId,
+    consumerId: numberFrom(tag.consumer_id),
+    offset: numberFrom(tag.offset),
     typeOption: tag.type,
     swap: tag.swap,
     operationType: tag.operation_type,
-    value: valueForTag(tag, realtimeByClp),
-    lastUpdate: now,
+    value: valueForTag(tag, realtimeByClp, fallbackValue),
+    lastUpdate: timestampFromRealtime(realtimeEntry, now),
     backendTag: tag,
   };
 }
 
-function mapClp(clp: IClp, realtime: RealTimePayload, statuses: StatusPayload, now = Date.now()): PLC {
-  const id = String(clp.ID);
+function mapClp(
+  clp: IClp,
+  realtime: RealTimePayload,
+  statuses: StatusPayload,
+  now = Date.now(),
+): PLC {
+  const numericId = entityId(clp);
+  const id = String(numericId);
   const realtimeByClp = realtime[id];
   const hasRealtime = realtimeByClp !== undefined;
   const status = statuses[id] ?? hasRealtime;
+  const tags = Array.isArray(clp.tags) ? clp.tags.filter((tag): tag is ITag => isObject(tag)) : [];
 
   return {
     id,
-    name: clp.description || `CLP ${clp.ID}`,
+    name: descriptionFrom(clp) || `CLP ${numericId}`,
     ip: clp.ip || "0.0.0.0",
-    port: clp.port || 0,
+    port: numberFrom(clp.port),
     protocol: protocolFromClp(clp),
-    typeClpId: clp.type_clp_id,
-    idPlc: clp.id_plc,
+    typeClpId: numberFrom(clp.type_clp_id, entityId(clp.type_clp)),
+    idPlc: numberFrom(clp.id_plc),
     typeClp: clp.type_clp,
     status: status ? "online" : "offline",
-    description: clp.description,
-    tags: (clp.tags ?? []).map((tag) => mapTag(tag, realtimeByClp, now)),
+    description: descriptionFrom(clp),
+    tags: tags.map((tag) => mapTag(tag, realtimeByClp, now)),
     backendClp: clp,
   };
 }
 
 function normalizeList<T>(payload: unknown): T[] {
-  return Array.isArray(payload) ? (payload as T[]) : [];
+  return Array.isArray(payload) ? (payload.filter(isObject) as T[]) : [];
 }
 
 function normalizeClps(payload: unknown): IClp[] {
-  return Array.isArray(payload) ? (payload as IClp[]) : [];
+  return normalizeList<IClp>(payload);
 }
 
 function normalizeRealTime(payload: unknown): RealTimePayload {
@@ -172,7 +252,10 @@ function clpInputToBackend(input: NewPlcInput, typeClps: ITypeClp[]): IClp {
 }
 
 function mergePlcInput(plc: PLC | undefined, input: NewPlcInput, typeClps: ITypeClp[]): IClp {
-  const typeClp = findById(typeClps, input.typeClpId) ?? plc?.backendClp?.type_clp ?? emptyTypeClp(input.typeClpId);
+  const typeClp =
+    findById(typeClps, input.typeClpId) ??
+    plc?.backendClp?.type_clp ??
+    emptyTypeClp(input.typeClpId);
 
   return {
     ...(plc?.backendClp ?? clpInputToBackend(input, typeClps)),
@@ -309,43 +392,65 @@ export function PlcProvider({ children }: { children: ReactNode }) {
     }
   }, [dispatch]);
 
-  const addPlc = useCallback(async (input: NewPlcInput) => {
-    await dispatch(addClp(clpInputToBackend(input, typeClps))).unwrap();
-    await refresh();
-  }, [dispatch, refresh, typeClps]);
+  const addPlc = useCallback(
+    async (input: NewPlcInput) => {
+      await dispatch(addClp(clpInputToBackend(input, typeClps))).unwrap();
+      await refresh();
+    },
+    [dispatch, refresh, typeClps],
+  );
 
-  const updatePlc = useCallback(async (id: string, input: NewPlcInput) => {
-    const plc = plcs.find((p) => p.id === id);
-    await dispatch(updateClp(mergePlcInput(plc, input, typeClps))).unwrap();
-    await refresh();
-  }, [dispatch, plcs, refresh, typeClps]);
+  const updatePlc = useCallback(
+    async (id: string, input: NewPlcInput) => {
+      const plc = plcs.find((p) => p.id === id);
+      await dispatch(updateClp(mergePlcInput(plc, input, typeClps))).unwrap();
+      await refresh();
+    },
+    [dispatch, plcs, refresh, typeClps],
+  );
 
-  const removePlc = useCallback(async (id: string) => {
-    await dispatch(deleteClp(Number(id))).unwrap();
-    await refresh();
-  }, [dispatch, refresh]);
+  const removePlc = useCallback(
+    async (id: string) => {
+      await dispatch(deleteClp(Number(id))).unwrap();
+      await refresh();
+    },
+    [dispatch, refresh],
+  );
 
   const setStatus = useCallback((id: string, status: ConnectionStatus) => {
     setPlcs((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   }, []);
 
-  const addTag = useCallback(async (plcId: string, tag: NewTagInput) => {
-    const plc = plcs.find((p) => p.id === plcId);
-    await dispatch(addTags(tagInputToBackend(plc, tag, typeTags, swaps, typeOperations))).unwrap();
-    await refresh();
-  }, [dispatch, plcs, refresh, swaps, typeOperations, typeTags]);
+  const addTag = useCallback(
+    async (plcId: string, tag: NewTagInput) => {
+      const plc = plcs.find((p) => p.id === plcId);
+      await dispatch(
+        addTags(tagInputToBackend(plc, tag, typeTags, swaps, typeOperations)),
+      ).unwrap();
+      await refresh();
+    },
+    [dispatch, plcs, refresh, swaps, typeOperations, typeTags],
+  );
 
-  const updateTag = useCallback(async (plcId: string, tagId: string, tag: NewTagInput) => {
-    const plc = plcs.find((p) => p.id === plcId);
-    const currentTag = plc?.tags.find((t) => t.id === tagId);
-    await dispatch(updateTags(mergeTagInput(plc, currentTag, tag, typeTags, swaps, typeOperations))).unwrap();
-    await refresh();
-  }, [dispatch, plcs, refresh, swaps, typeOperations, typeTags]);
+  const updateTag = useCallback(
+    async (plcId: string, tagId: string, tag: NewTagInput) => {
+      const plc = plcs.find((p) => p.id === plcId);
+      const currentTag = plc?.tags.find((t) => t.id === tagId);
+      await dispatch(
+        updateTags(mergeTagInput(plc, currentTag, tag, typeTags, swaps, typeOperations)),
+      ).unwrap();
+      await refresh();
+    },
+    [dispatch, plcs, refresh, swaps, typeOperations, typeTags],
+  );
 
-  const removeTag = useCallback(async (plcId: string, tagId: string) => {
-    await dispatch(deleteTag(Number(tagId))).unwrap();
-    await refresh();
-  }, [dispatch, refresh]);
+  const removeTag = useCallback(
+    async (plcId: string, tagId: string) => {
+      await dispatch(deleteTag(Number(tagId))).unwrap();
+      await refresh();
+    },
+    [dispatch, refresh],
+  );
 
   useEffect(() => {
     if (!ready || !accessToken) {
