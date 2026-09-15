@@ -63,11 +63,11 @@ const EMPTY_FORM: UserFormState = {
   confirmPassword: "",
 };
 
-function messageFromError(error: unknown, fallback = "Nao foi possivel cadastrar o usuario."): string {
+function messageFromError(error: unknown, fallback = "Não foi possível cadastrar o usuário."): string {
   if (error instanceof ApiError) {
-    if (error.message === "email.alredy.used") return "Este e-mail ja esta cadastrado.";
-    if (error.message === "error.create") return "Nao foi possivel criar o usuario.";
-    if (error.message === "error.hash.password") return "Nao foi possivel proteger a senha.";
+    if (error.message === "email.alredy.used") return "Este e-mail já está cadastrado.";
+    if (error.message === "error.create") return "Não foi possível criar o usuário.";
+    if (error.message === "error.hash.password") return "Não foi possível proteger a senha.";
     return error.message;
   }
 
@@ -107,9 +107,9 @@ export function UserRegistrationPage() {
         permission: current.permission || nextPermissions[0] || "",
       }));
     } catch (err) {
-      console.error("[UserRegistrationPage] perfis de usuario falharam:", err);
+      console.error("[UserRegistrationPage] perfis de usuário falharam:", err);
       setPermissions([]);
-      setPermissionsError("Nao foi possivel carregar os perfis cadastrados.");
+      setPermissionsError("Nãoo foi possível carregar os perfis cadastrados.");
     } finally {
       setLoadingPermissions(false);
     }
@@ -121,7 +121,7 @@ export function UserRegistrationPage() {
       const response = await api.get<IUser[]>("users/");
       setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
-      console.error("[UserRegistrationPage] usuarios falharam:", err);
+      console.error("[UserRegistrationPage] usuários falharam:", err);
       setUsers([]);
     } finally {
       setLoadingUsers(false);
@@ -137,13 +137,13 @@ export function UserRegistrationPage() {
     event.preventDefault();
 
     if (!form.name.trim() || !form.email.trim() || !form.password || !form.permission) {
-      setError("Preencha nome, e-mail, permissao e senha.");
+      setError("Preencha nome, e-mail, permissão e senha.");
       setSuccess("");
       return;
     }
 
     if (form.password !== form.confirmPassword) {
-      setError("As senhas nao conferem.");
+      setError("As senhas não conferem.");
       setSuccess("");
       return;
     }
@@ -161,7 +161,7 @@ export function UserRegistrationPage() {
         password: form.password,
       });
       setForm({ ...EMPTY_FORM, permission: permissions[0] || "" });
-      setSuccess("Usuario cadastrado com sucesso.");
+      setSuccess("Usuário cadastrado com sucesso.");
       await loadUsers();
     } catch (err) {
       console.error("[UserRegistrationPage] cadastro falhou:", err);
@@ -197,12 +197,12 @@ export function UserRegistrationPage() {
     if (!editingUser) return;
 
     if (!editForm.name.trim() || !editForm.email.trim() || !editForm.permission) {
-      setEditError("Preencha nome, e-mail e permissao.");
+      setEditError("Preencha nome, e-mail e permissão.");
       return;
     }
 
     if (editForm.password && editForm.password !== editForm.confirmPassword) {
-      setEditError("As senhas nao conferem.");
+      setEditError("As senhas não conferem.");
       return;
     }
 
@@ -221,11 +221,11 @@ export function UserRegistrationPage() {
       });
       setEditingUser(null);
       setEditForm(EMPTY_FORM);
-      setSuccess("Usuario atualizado com sucesso.");
+      setSuccess("Usuário atualizado com sucesso.");
       await loadUsers();
     } catch (err) {
       console.error("[UserRegistrationPage] update falhou:", err);
-      setEditError(messageFromError(err, "Nao foi possivel atualizar o usuario."));
+      setEditError(messageFromError(err, "Não foi possível atualizar o usuário."));
     } finally {
       setUpdating(false);
     }
@@ -239,10 +239,10 @@ export function UserRegistrationPage() {
     try {
       await api.delete(`users/${user.ID}/`);
       setUsers((current) => current.filter((registeredUser) => registeredUser.ID !== user.ID));
-      setSuccess("Usuario excluido com sucesso.");
+      setSuccess("Usuário excluído com sucesso.");
     } catch (err) {
       console.error("[UserRegistrationPage] delete falhou:", err);
-      setError(messageFromError(err, "Nao foi possivel excluir o usuario."));
+      setError(messageFromError(err, "Não foi possível excluir o usuário."));
     } finally {
       setDeletingUserId(null);
     }
@@ -258,9 +258,9 @@ export function UserRegistrationPage() {
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            configuracoes
+            configurações
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Cadastrar usuario</h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Cadastrar usuário</h1>
         </div>
       </header>
 
@@ -276,7 +276,7 @@ export function UserRegistrationPage() {
             <div>
               <h2 className="font-mono text-sm font-semibold">Novo acesso</h2>
               <p className="text-sm text-muted-foreground">
-                Informe os dados para liberar um novo usuario no sistema.
+                Informe os dados para liberar um novo usuário no sistema.
               </p>
             </div>
           </div>
@@ -312,7 +312,7 @@ export function UserRegistrationPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="permission">Permissao</Label>
+                <Label htmlFor="permission">Permissão</Label>
                 <Select
                   value={form.permission}
                   onValueChange={(permission) => setForm({ ...form, permission })}
@@ -371,7 +371,7 @@ export function UserRegistrationPage() {
           {success && (
             <Alert className="mt-5 border-status-online/40 text-status-online">
               <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Cadastro concluido</AlertTitle>
+              <AlertTitle>Cadastro concluído</AlertTitle>
               <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
@@ -388,7 +388,7 @@ export function UserRegistrationPage() {
       <Dialog open={Boolean(editingUser)} onOpenChange={(open) => !open && closeEdit()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-mono">Editar usuario</DialogTitle>
+            <DialogTitle className="font-mono">Editar usuário</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={submitEdit} className="grid gap-4">
@@ -420,7 +420,7 @@ export function UserRegistrationPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="editPermission">Permissao</Label>
+                <Label htmlFor="editPermission">Permissão</Label>
                 <Select
                   value={editForm.permission}
                   onValueChange={(permission) => setEditForm({ ...editForm, permission })}
@@ -490,10 +490,7 @@ export function UserRegistrationPage() {
               <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="font-mono text-sm font-semibold">Usuarios cadastrados</h2>
-              <p className="text-sm text-muted-foreground">
-                Lista carregada diretamente do backend.
-              </p>
+              <h2 className="font-mono text-sm font-semibold">Usuários cadastrados</h2>
             </div>
           </div>
         </div>
@@ -501,12 +498,12 @@ export function UserRegistrationPage() {
         {loadingUsers ? (
           <div className="rounded-lg border border-dashed border-border p-10 text-center">
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">Carregando usuarios.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Carregando usuários.</p>
           </div>
         ) : users.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Nenhum usuario retornado pelo backend.
+              Nenhum usuário retornado.
             </p>
           </div>
         ) : (
@@ -516,8 +513,8 @@ export function UserRegistrationPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>E-mail</TableHead>
                 <TableHead>Telefone</TableHead>
-                <TableHead>Permissao</TableHead>
-                <TableHead className="w-24 text-right">Acoes</TableHead>
+                <TableHead>Permissão</TableHead>
+                <TableHead className="w-24 text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -536,7 +533,7 @@ export function UserRegistrationPage() {
                         variant="outline"
                         size="icon"
                         onClick={() => openEdit(registeredUser)}
-                        aria-label="Editar usuario"
+                        aria-label="Editar usuário"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -546,7 +543,7 @@ export function UserRegistrationPage() {
                             type="button"
                             variant="outline"
                             size="icon"
-                            aria-label="Excluir usuario"
+                            aria-label="Excluir usuário"
                             disabled={deletingUserId === registeredUser.ID}
                           >
                             {deletingUserId === registeredUser.ID ? (
@@ -558,9 +555,9 @@ export function UserRegistrationPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir usuario</AlertDialogTitle>
+                            <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Essa acao remove {registeredUser.name} do sistema.
+                              Essa ação remove {registeredUser.name} do sistema.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

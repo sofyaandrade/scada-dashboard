@@ -22,11 +22,11 @@ function messageFromError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.message === "error.current.password") return "A senha atual esta incorreta.";
     if (error.message === "error.password.required") return "Informe a senha atual e a nova senha.";
-    if (error.message === "error.hash.password") return "Nao foi possivel proteger a nova senha.";
-    if (error.message === "error.update") return "Nao foi possivel atualizar a senha.";
+    if (error.message === "error.hash.password") return "Não foi possível proteger a nova senha.";
+    if (error.message === "error.update") return "Não foi possível atualizar a senha.";
     return error.message;
   }
-  return "Nao foi possivel atualizar a senha.";
+  return "Não foi possível atualizar a senha.";
 }
 
 export function UserSettingsPage() {
@@ -45,7 +45,7 @@ export function UserSettingsPage() {
     }
 
     if (form.newPassword !== form.confirmPassword) {
-      setError("As senhas nao conferem.");
+      setError("As senhas no conferem.");
       setSuccess("");
       return;
     }

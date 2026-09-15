@@ -28,7 +28,7 @@ export function LoginPage() {
       await login(email, password);
       navigate({ to: "/dashboard" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel autenticar.");
+      setError(err instanceof Error ? err.message : "Não foi possível autenticar.");
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export function LoginPage() {
           <div className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-widest">
-                E-mail ou usuario
+                E-mail ou usuário
               </Label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -126,7 +126,7 @@ export function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-[11px] text-muted-foreground">
-            Acesso restrito - sessao monitorada
+            Acesso restrito - sessão monitorada
           </p>
         </form>
       </div>

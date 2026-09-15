@@ -15,6 +15,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -74,7 +85,7 @@ export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
       await removePlc(plc.id);
     } catch (err) {
       console.error("[PlcDetailPage] delete CLP falhou:", err);
-      setPlcError("Nao foi possivel excluir o CLP.");
+      setPlcError("Não foi possível excluir o CLP.");
     } finally {
       setDeletingPlc(false);
     }
@@ -125,19 +136,40 @@ export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
               {plc.status === "online" ? "Desconectar" : "Conectar"}
             </Button>
             <EditPlcDialog plc={plc} />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              disabled={deletingPlc}
-              onClick={handleRemovePlc}
-            >
-              {deletingPlc ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  disabled={deletingPlc}
+                  aria-label="Excluir CLP"
+                >
+                  {deletingPlc ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir CLP</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Essa ação remove {plc.name} e suas tags do sistema.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => void handleRemovePlc()}
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
         {plcError && <p className="mt-4 text-xs text-destructive">{plcError}</p>}
@@ -222,7 +254,7 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
       setOpen(false);
     } catch (err) {
       console.error("[EditPlcDialog] update falhou:", err);
-      setError("Nao foi possivel salvar o CLP.");
+      setError("Não foi possível salvar o CLP.");
     } finally {
       setSaving(false);
     }
@@ -294,7 +326,7 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label>Descricao (opcional)</Label>
+            <Label>Descrição (opcional)</Label>
             <Input
               value={form.description ?? ""}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -346,7 +378,7 @@ function TagCard({ plcId, tag, live }: TagCardProps) {
       await removeTag(plcId, tag.id);
     } catch (err) {
       console.error("[TagCard] delete falhou:", err);
-      setError("Nao foi possivel excluir.");
+      setError("Não foi possível excluir.");
     } finally {
       setDeleting(false);
     }
@@ -460,7 +492,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
       return;
     }
     if (!form.typeId || !form.swapId || !form.operationId) {
-      setError("Selecione tipo, swap e operacao.");
+      setError("Selecione tipo, swap e operação.");
       return;
     }
 
@@ -481,7 +513,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
       setOpen(false);
     } catch (err) {
       console.error("[EditTagDialog] update falhou:", err);
-      setError("Nao foi possivel salvar a tag.");
+      setError("Não foi possível salvar a tag.");
     } finally {
       setSaving(false);
     }
@@ -553,7 +585,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label>Operacao</Label>
+              <Label>Operação</Label>
               <Select
                 value={form.operationId ? String(form.operationId) : ""}
                 onValueChange={(v) => setForm({ ...form, operationId: Number(v) })}
@@ -610,7 +642,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
       return;
     }
     if (!form.typeId || !form.swapId || !form.operationId) {
-      setError("Selecione tipo, swap e operacao.");
+      setError("Selecione tipo, swap e operação.");
       return;
     }
 
@@ -630,7 +662,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
       setForm(EMPTY_TAG);
     } catch (err) {
       console.error("[AddTagDialog] create falhou:", err);
-      setError("Nao foi possivel cadastrar a tag.");
+      setError("Não foi possível cadastrar a tag.");
     } finally {
       setSaving(false);
     }
@@ -694,7 +726,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label>Operacao</Label>
+              <Label>Operação</Label>
               <Select
                 value={form.operationId ? String(form.operationId) : ""}
                 onValueChange={(v) => setForm({ ...form, operationId: Number(v) })}

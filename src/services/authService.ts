@@ -52,7 +52,7 @@ function normalizeLoginResponse(data: LoginResponse): Pick<AuthSession, "accessT
   const refreshToken = data.refresh_token ?? data.RefreshToken ?? data.refreshToken;
 
   if (!accessToken || !refreshToken) {
-    throw new Error("Resposta de login invalida: tokens nao encontrados.");
+    throw new Error("Resposta de login inválida: tokens não encontrados.");
   }
 
   return { accessToken, refreshToken };
@@ -78,7 +78,7 @@ export async function loginWithBackend(email: string, password: string): Promise
   const login = email.trim();
 
   if (!login || !password) {
-    throw new Error("Informe usuario e senha.");
+    throw new Error("Informe usuário e senha.");
   }
 
   try {
@@ -94,9 +94,9 @@ export async function loginWithBackend(email: string, password: string): Promise
     };
   } catch (err) {
     if (err instanceof TypeError) {
-      throw new Error("Nao foi possivel conectar ao backend. Confira se a API esta rodando na porta 1710.");
+      throw new Error("Não foi possível conectar ao backend. Confira se a API esta rodando na porta 1710.");
     }
-    throw new Error("Nao foi possivel autenticar. Confira usuario e senha.");
+    throw new Error("Não foi possível autenticar. Confira usuário e senha.");
   }
 }
 

@@ -28,7 +28,7 @@ export function DashboardPage() {
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            visao geral
+            visão geral
           </p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">CLPs</h1>
         </div>
@@ -43,7 +43,7 @@ export function DashboardPage() {
       {plcs.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-12 text-center">
           <p className="text-sm text-muted-foreground">
-            Nenhum CLP encontrado no backend.
+            Nenhum CLP encontrado.
           </p>
         </div>
       ) : (
@@ -75,7 +75,7 @@ export function DashboardPage() {
                 </div>
 
                 <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 font-mono text-xs">
-                  <Field label="Endereco" value={`${p.ip}:${p.port}`} />
+                  <Field label="Endereço" value={`${p.ip}:${p.port}`} />
                   <Field label="Tags" value={String(p.tags.length)} />
                 </div>
 
