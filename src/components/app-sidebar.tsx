@@ -267,13 +267,13 @@ export function AppSidebar() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 group-data-[collapsible=icon]:hidden"
-                aria-label="Configuracoes"
+                aria-label="Configurações"
               >
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-56">
-              <DropdownMenuLabel className="font-mono text-xs">Configuracoes</DropdownMenuLabel>
+              <DropdownMenuLabel className="font-mono text-xs">Configurações</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/usuarios/cadastro">
@@ -284,7 +284,7 @@ export function AppSidebar() {
               <DropdownMenuItem asChild>
                 <Link to="/usuarios/configuracao">
                   <UserPlus className="h-4 w-4" />
-                  Configurar usuario
+                  Configuração usuário
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

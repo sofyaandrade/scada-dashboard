@@ -74,9 +74,9 @@ export function UserSettingsPage() {
     <div className="mx-auto max-w-2xl p-6">
       <header className="mb-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-          configuracoes
+          configurações
         </p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Configuracao de senha</h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Configuração de senha</h1>
       </header>
 
       <form onSubmit={submit} className="rounded-xl border border-border bg-card p-6 shadow-card">
