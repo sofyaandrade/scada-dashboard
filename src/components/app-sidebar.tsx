@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { usePlc } from "@/hooks/usePlc";
 import { useAuth } from "@/hooks/useAuth";
+import { canCreateOrDeleteEquipment, canManageUsers } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -245,11 +246,13 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupContent className="px-2 group-data-[collapsible=icon]:hidden">
-            <AddPlcDialog />
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {canCreateOrDeleteEquipment(user) && (
+          <SidebarGroup>
+            <SidebarGroupContent className="px-2 group-data-[collapsible=icon]:hidden">
+              <AddPlcDialog />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
@@ -275,12 +278,14 @@ export function AppSidebar() {
             <DropdownMenuContent align="end" side="top" className="w-56">
               <DropdownMenuLabel className="font-mono text-xs">Configurações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/usuarios/cadastro">
-                  <UserPlus className="h-4 w-4" />
-                  Cadastrar usuário
-                </Link>
-              </DropdownMenuItem>
+              {canManageUsers(user) && (
+                <DropdownMenuItem asChild>
+                  <Link to="/usuarios/cadastro">
+                    <UserPlus className="h-4 w-4" />
+                    Cadastrar usuário
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/usuarios/configuracao">
                   <UserPlus className="h-4 w-4" />

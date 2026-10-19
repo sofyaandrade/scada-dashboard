@@ -41,6 +41,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePlc } from "@/hooks/usePlc";
+import { useAuth } from "@/hooks/useAuth";
+import { canCreateOrDeleteEquipment } from "@/lib/permissions";
 import type { ConnectionStatus, NewPlcInput, NewTagInput, PLC, Tag } from "@/types/plc";
 
 const STATUS_META: Record<ConnectionStatus, { label: string; cls: string; Icon: typeof Wifi }> = {
@@ -58,6 +60,8 @@ interface PlcDetailPageProps {
 }
 
 export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
+  const { user } = useAuth();
+  const canCreateOrDelete = canCreateOrDeleteEquipment(user);
   const { plcs, removePlc, setStatus } = usePlc();
   const [deletingPlc, setDeletingPlc] = useState(false);
   const [plcError, setPlcError] = useState("");
@@ -136,7 +140,7 @@ export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
               {plc.status === "online" ? "Desconectar" : "Conectar"}
             </Button>
             <EditPlcDialog plc={plc} />
-            <AlertDialog>
+            {canCreateOrDelete && <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -169,7 +173,7 @@ export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+            </AlertDialog>}
           </div>
         </div>
         {plcError && <p className="mt-4 text-xs text-destructive">{plcError}</p>}
@@ -179,13 +183,13 @@ export function PlcDetailPage({ plcId }: PlcDetailPageProps) {
         <h2 className="font-mono text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Tags ({plc.tags.length})
         </h2>
-        <AddTagDialog plcId={plc.id} />
+        {canCreateOrDelete && <AddTagDialog plcId={plc.id} />}
       </div>
 
       {plc.tags.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <p className="text-sm text-muted-foreground">
-            Nenhuma tag cadastrada. Adicione tags para monitorar valores em tempo real.
+            Nenhuma tag cadastrada.{canCreateOrDelete && " Adicione tags para monitorar valores em tempo real."}
           </p>
         </div>
       ) : (
@@ -346,6 +350,7 @@ function EditPlcDialog({ plc }: { plc: PLC }) {
 }
 
 function TagCard({ plcId, tag, live }: TagCardProps) {
+  const { user } = useAuth();
   const { removeTag } = usePlc();
   const lastValueRef = useRef(tag?.value);
   const [flash, setFlash] = useState(false);
@@ -395,13 +400,13 @@ function TagCard({ plcId, tag, live }: TagCardProps) {
         </div>
         <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
           <EditTagDialog plcId={plcId} tag={tag} />
-          <button onClick={handleRemove} disabled={deleting} aria-label="Remover">
+          {canCreateOrDeleteEquipment(user) && <button onClick={handleRemove} disabled={deleting} aria-label="Remover">
             {deleting ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
             ) : (
               <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
             )}
-          </button>
+          </button>}
         </div>
       </div>
 
