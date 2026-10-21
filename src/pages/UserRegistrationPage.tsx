@@ -65,9 +65,6 @@ const EMPTY_FORM: UserFormState = {
 
 function messageFromError(error: unknown, fallback = "Não foi possível cadastrar o usuário."): string {
   if (error instanceof ApiError) {
-    if (error.message === "email.alredy.used") return "Este e-mail já está cadastrado.";
-    if (error.message === "error.create") return "Não foi possível criar o usuário.";
-    if (error.message === "error.hash.password") return "Não foi possível proteger a senha.";
     return error.message;
   }
 
