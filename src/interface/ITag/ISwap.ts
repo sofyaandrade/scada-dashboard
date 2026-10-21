@@ -1,4 +1,5 @@
 export default interface ISwap {
     ID: number,
-    description: string
+    description: string,
+    order_swap?: string
 }

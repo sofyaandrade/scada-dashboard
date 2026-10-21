@@ -55,6 +55,12 @@ function optionLabel(item: { description?: string; Description?: string }): stri
   return item.description ?? item.Description ?? "";
 }
 
+function swapOptionLabel(swap: { description: string; order_swap?: string }): string {
+  const order = swap.order_swap?.trim().toUpperCase();
+  const description = optionLabel(swap).replace(/\s*\((?:ABCD|BADC|CDAB|DCBA)\)\s*$/i, "");
+  return order ? `${description} (${order})` : optionLabel(swap);
+}
+
 interface PlcDetailPageProps {
   plcId: string;
 }
@@ -583,7 +589,7 @@ function EditTagDialog({ plcId, tag }: { plcId: string; tag: Tag }) {
                 <SelectContent>
                   {swaps.map((swap) => (
                     <SelectItem key={swap.ID} value={String(swap.ID)}>
-                      {optionLabel(swap)}
+                      {swapOptionLabel(swap)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -724,7 +730,7 @@ function AddTagDialog({ plcId }: { plcId: string }) {
                 <SelectContent>
                   {swaps.map((swap) => (
                     <SelectItem key={swap.ID} value={String(swap.ID)}>
-                      {optionLabel(swap)}
+                      {swapOptionLabel(swap)}
                     </SelectItem>
                   ))}
                 </SelectContent>

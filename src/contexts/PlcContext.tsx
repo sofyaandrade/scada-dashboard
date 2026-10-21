@@ -114,8 +114,7 @@ function mapTag(tag: ITag, realtimeByClp?: Record<string, RealTimeEntry>, now = 
 function mapClp(clp: IClp, realtime: RealTimePayload, statuses: StatusPayload, now = Date.now()): PLC {
   const id = String(clp.ID);
   const realtimeByClp = realtime[id];
-  const hasRealtime = realtimeByClp !== undefined;
-  const status = statuses[id] ?? hasRealtime;
+  const status = statuses[id] === true;
   const tags = normalizeTags(clp.tags);
 
   return {
