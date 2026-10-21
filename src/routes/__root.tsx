@@ -4,14 +4,13 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
+import { Provider as ReduxProvider } from "react-redux";
 
-import appCss from "../styles.css?url";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PlcProvider } from "@/contexts/PlcContext";
+import store from "@/store/store";
 
 function NotFoundComponent() {
   return (
@@ -38,15 +37,16 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const message = error?.message?.trim();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Não foi possível carregar esta tela
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {message || "Algo inesperado aconteceu. Tente novamente ou volte para o painel."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -56,13 +56,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar novamente
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Ir para o inicio
           </a>
         </div>
       </div>
@@ -78,40 +78,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "PLC.Bridge" },
       { name: "description", content: "Middleware de comunicação em tempo real com CLPs" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="pt-BR">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <PlcProvider>
-            <Outlet />
-          </PlcProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <ReduxProvider store={store}>
+        <ThemeProvider>
+          <AuthProvider>
+            <PlcProvider>
+              <Outlet />
+            </PlcProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </ReduxProvider>
     </QueryClientProvider>
   );
 }
